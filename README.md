@@ -58,6 +58,7 @@ Collects IDs and links to ads (houses and apartments) and stories them in Postgr
     - __init__.py
     - driver_manager.py
     - progress_manager.py
+    - logger.py
   - data/ — Data files
     - many_proxy.json
     - progress.json
