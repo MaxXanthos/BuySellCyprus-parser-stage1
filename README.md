@@ -39,5 +39,3 @@ BuySell_Project/
 ├── requirements.txt
 ├── .gitignore
 └── LICENSE (если решишь добавить)
-
-└
