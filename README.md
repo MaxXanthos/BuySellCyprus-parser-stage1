@@ -1,69 +1,71 @@
 # BuySell Parser (Stage 1)
 
-Парсер недвижимости с сайта [BuySellCyprus](https://www.buysellcyprus.com).  
-Собирает ID и ссылки на объявления (дома и квартиры) и сохраняет их в базу данных PostgreSQL.  
+Real estate parser from the [BuySellCyprus](https://www.buysellcyprus.com) website.
+Collects IDs and links to ads (houses and apartments) and stories them in PostgreSQL database.
 
 ---
 
-## Возможности
+## Features
 
-- Поддержка прокси (сейчас Webshare)  
-- Обход Cloudflare и других защит от ботов (через selenium-stealth и прокси)  
-- Автоматическая настройка и управление WebDriver  
-- Устойчивость к сбоям и таймаутам  
+- Parses full property listing details from [BuySellCyprus](https://www.buysellcyprus.com)
+- Proxy rotation support [Webshare](https://www.webshare.io/)
+- Saves results to a PostgreSQL database
+- Resistance to failures and timeouts
+- Bypass Cloudflare and other bot protections (via selenium-stealth and proxy)
+- Automatic configuration and management of WebDriver
 
 ---
 
-## Установка для запуска
+## Installation
 
-1. **Клонируйте репозиторий**
+1. **Clone the repository**
     ```bash
     git clone https://github.com/MaxXanthos/BuySellCyprus-parser.git
     cd BuySell_Project
     ```
-2. **Создайте и активируйте виртуальное окружение**
-   - На Windows:
+2. **Create and activate a virtual environment**
+   - On Windows:
      ```bash
      python -m venv venv
      venv\Scripts\activate
      ```
-   - На macOS/Linux:
+   - On macOS/Linux:
      ```bash
      python3 -m venv venv
      source venv/bin/activate
      ```
-3. **Установите необходимые зависимости**
+3. **Install dependencies**
     ```bash
     pip install -r requirements.txt
     ```
-4. **(Если используете Playwright) Установите браузеры:**
+4. **(If using Playwright) Install browsers**
     ```bash
      playwright install
      ```
-5. **Настройте конфигурацию**
-   - отредактируйте файл `config.ini`, указав свои параметры.
-6. **Запустите парсер**
+5. **Configure the project**
+   - Edit the `config.ini`file and set your database and parsing parameters.
+6. **Run the parser**
     ```bash
     python main.py
     ```
 
 ---
 
-## структура проекта
+## Project structure
 
 - BuySell_Project/
-  - core/ — Логика драйвера и управления прогрессом
+  - core/ — Driver logic and progress management
     - __init__.py
     - driver_manager.py
     - progress_manager.py
-  - data/ — Файлы с данными
+  - data/ — Data files
     - many_proxy.json
     - progress.json
     - failed_rows.csv
   - extensions/
     - __init__.py
     - proxy_extension.py
-  - proxy_manager/ — Всё, что связано с прокси
+  - proxy_manager/ — Everything related to proxies
     - __init__.py
     - many_proxy.py
     - proxy_writer.py
@@ -74,5 +76,5 @@
 
 ---
 
-## Обратная связь
-Если вы нашли ошибку или хотите предложить улучшение, откройте [issue](https://github.com/MaxXanthos/BuySellCyprus-parser/issues).
+## Feedback
+If you find a bug or want to suggest an improvement, open [issue](https://github.com/MaxXanthos/BuySellCyprus-parser/issues).
