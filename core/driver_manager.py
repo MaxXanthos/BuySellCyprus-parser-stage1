@@ -8,17 +8,18 @@ from selenium.webdriver.chrome.service import Service
 from selenium_stealth import stealth
 from webdriver_manager.chrome import ChromeDriverManager
 from pathlib import Path
-from proxy_extension import create_proxy_auth_extension
+from extensions.proxy_extension import create_proxy_auth_extension
 import time
 import os
 
 CHROMEDRIVER_PATH = ChromeDriverManager().install()
 
-def get_driver_with_proxy(proxy_data: dict) -> tuple[webdriver.Chrome, Path]:
+def get_driver_with_proxy(proxy_data: dict, webdriver_path: str) -> tuple[webdriver.Chrome, Path]:
     """
     Создает драйвер с расширением авторизации прокси и включенной защитой от обнаружения.
 
     :param proxy_data: Словарь с ключами proxy_address, port, username, password
+    :param webdriver_path: Путь к chromedriver
     :return: Кортеж из Selenium-драйвера и пути к ZIP-расширению
     """
     ip = proxy_data["proxy_address"]
@@ -26,8 +27,7 @@ def get_driver_with_proxy(proxy_data: dict) -> tuple[webdriver.Chrome, Path]:
     username = proxy_data["username"]
     password = proxy_data["password"]
 
-    # Уникальное имя файла расширения
-    plugin_path = Path(f"proxy_auth_plugin_{int(time.time()*1000)}.zip")
+    plugin_path = Path(f"proxy_auth_plugin_{int(time.time() * 1000)}.zip")
     create_proxy_auth_extension(ip, port, username, password, plugin_path)
 
     chrome_options = Options()
@@ -41,20 +41,21 @@ def get_driver_with_proxy(proxy_data: dict) -> tuple[webdriver.Chrome, Path]:
     chrome_options.add_extension(str(plugin_path))
 
     driver = webdriver.Chrome(
-        service=Service(CHROMEDRIVER_PATH),
+        service=Service(webdriver_path),  # ← используем переданный путь
         options=chrome_options
     )
 
     stealth(driver,
-            languages = ["en-US","en"],
-            vendor = "Google Inc.",
-            platform = "Win32",
-            webgl_vendor = "Intel Inc.",
-            renderer = "Intel Iris OpenGL Engine",
-            fix_hairline = True
+            languages=["en-US", "en"],
+            vendor="Google Inc.",
+            platform="Win32",
+            webgl_vendor="Intel Inc.",
+            renderer="Intel Iris OpenGL Engine",
+            fix_hairline=True
     )
 
     return driver, plugin_path
+
 
 
 def cleanup_plugin(plugin_path) -> None:

@@ -4,7 +4,6 @@ import time
 import threading
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime, timezone
-from pathlib import Path
 
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
@@ -17,20 +16,12 @@ from sqlalchemy.orm import declarative_base, sessionmaker
 from core.driver_manager import get_driver_with_proxy
 from core.progress_manager import ProgressManager
 
+from settings import MAX_PAGES, THREADS, DATABASE_URL, PROXY_FILE, FAILED_ROWS_FILE, WEBDRIVER_PATH, PROGRESS_FILE
 
-# ───────────────────────────────
-# CONFIGURATION
-# ───────────────────────────────
-
-MAX_PAGES = 100
 BASE_URLS = [
     "https://www.buysellcyprus.com/properties-for-sale/type-apartment/page-{}",
     "https://www.buysellcyprus.com/properties-for-sale/type-house/page-{}"
 ]
-PROXY_FILE = "many_proxy.json"
-DATABASE_URL = "postgresql+psycopg2://postgres:123123000@localhost:5432/postgres"
-FAILED_ROWS_FILE = Path("failed_rows.csv")
-THREADS = 5
 
 # ───────────────────────────────
 # DATABASE SETUP
@@ -52,7 +43,7 @@ def process_page(url: str, proxy_data: dict, page_num: int):
     print(f"[{time.time()}] [Thread {threading.get_ident()}] Обработка страницы {page_num}")
     print(f"Прокси: {proxy_data['proxy_address']}:{proxy_data['port']}")
 
-    driver, pluginfile_path = get_driver_with_proxy(proxy_data)
+    driver, pluginfile_path = get_driver_with_proxy(proxy_data, WEBDRIVER_PATH)
     next_page_url = None
     results_on_page = []
 
@@ -149,11 +140,15 @@ def save_to_database(listings: list[tuple[str, str]]):
             FAILED_ROWS_FILE.write_text(f"{listing_id}, {link}\n")
             failed += 1
 
+    listing_id = "N/A"
+    link = "N/A"
+
     try:
         session.commit()
         print(f"\n Успешно в базе: {success} записей")
         if failed:
-            print(f"⚠️ Не удалось записать: {failed} (см. {FAILED_ROWS_FILE})")
+            with FAILED_ROWS_FILE.open("a", encoding="utf-8") as f:
+                f.write(f"{listing_id}, {link}\n")
     except Exception as e:
         session.rollback()
         print(f"[COMMIT ERROR]: {e}")
@@ -172,7 +167,7 @@ def main():
     if not proxies:
         raise RuntimeError("Файл с прокси пуст или не существует")
 
-    progress = ProgressManager()
+    progress = ProgressManager(progress_file=str(PROGRESS_FILE))
     listings = []
 
     with ThreadPoolExecutor(max_workers=THREADS) as executor:
