@@ -2,7 +2,7 @@ import json
 from urllib.parse import urlparse
 from typing import List, Dict
 
-from many_proxy import fetch_all_webshare_proxies
+from proxy_manager.many_proxy import fetch_all_webshare_proxies
 
 WEBSHAREIO_PROXY_API_KEY = ''
 

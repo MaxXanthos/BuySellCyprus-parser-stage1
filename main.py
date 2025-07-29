@@ -14,8 +14,8 @@ from selenium.common.exceptions import TimeoutException, NoSuchElementException
 from sqlalchemy import create_engine, Column, Text, DateTime
 from sqlalchemy.orm import declarative_base, sessionmaker
 
-from driver_manager import get_driver_with_proxy
-from progress_manager import ProgressManager
+from core.driver_manager import get_driver_with_proxy
+from core.progress_manager import ProgressManager
 
 
 # ───────────────────────────────
@@ -129,7 +129,6 @@ def process_page_threaded(page_num: int, proxy: dict, base_url: str, progress: P
 # ───────────────────────────────
 # DATABASE INSERTION
 # ───────────────────────────────
-from typing import List, Tuple # if python < python 3.9
 def save_to_database(listings: list[tuple[str, str]]):
     session = Session()
     success, failed = 0, 0
