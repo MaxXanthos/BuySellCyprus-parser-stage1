@@ -71,3 +71,8 @@
   - README.md
   - config.ini
   - settings.py
+
+---
+
+## Обратная связь
+Если вы нашли ошибку или хотите предложить улучшение, откройте [issue](https://github.com/MaxXanthos/BuySellCyprus-parser/issues).
