@@ -5,6 +5,7 @@ import threading
 from typing import List, Tuple # Needed for python < 3.9
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime, timezone
+from pathlib import Path
 
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait

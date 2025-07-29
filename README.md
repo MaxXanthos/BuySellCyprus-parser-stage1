@@ -74,6 +74,7 @@ Collects IDs and links to ads (houses and apartments) and stories them in Postgr
   - README.md
   - config.ini
   - settings.py
+  - requirements.txt
 
 ---
 

@@ -28,7 +28,7 @@ def fetch_all_webshare_proxies(api_key: str, per_page: int = 100, delay: float =
             "limit": per_page
         }
 
-        response = requests.get(base_url, headers=headers, params=params)
+        response = requests.get(base_url, headers=headers, params=params, timeout=30)
 
         if response.status_code != 200:
             print(f"Ошибка на странице {page}: {response.status_code} - {response.text}")
