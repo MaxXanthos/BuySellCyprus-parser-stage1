@@ -9,8 +9,8 @@ from selenium_stealth import stealth
 from webdriver_manager.chrome import ChromeDriverManager
 from pathlib import Path
 from extensions.proxy_extension import create_proxy_auth_extension
-import time
 import os
+from uuid import uuid4
 
 CHROMEDRIVER_PATH = ChromeDriverManager().install()
 
@@ -27,7 +27,7 @@ def get_driver_with_proxy(proxy_data: dict, webdriver_path: str) -> tuple[webdri
     username = proxy_data["username"]
     password = proxy_data["password"]
 
-    plugin_path = Path(f"proxy_auth_plugin_{int(time.time() * 1000)}.zip")
+    plugin_path = Path(f"proxy_auth_plugin_{uuid4().hex}.zip")
     create_proxy_auth_extension(ip, port, username, password, plugin_path)
 
     chrome_options = Options()

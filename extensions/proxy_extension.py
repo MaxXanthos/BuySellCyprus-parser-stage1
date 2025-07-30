@@ -1,14 +1,13 @@
-"""
-Создаёт расширение Chrome с прокси-авторизацией для Selenium.
-Используется для обхода Cloudflare с Webshare-прокси.
-"""
-
-
+import json
 import zipfile
+import time
+from pathlib import Path
+import logging
 
-def create_proxy_auth_extension(proxy_host, proxy_port, proxy_username, proxy_password, pluginfile_path, scheme='http'):
-    manifest_json = """
-    {
+logger = logging.getLogger(__name__)
+
+def create_proxy_auth_extension(proxy_host, proxy_port, proxy_username, proxy_password, pluginfile_path: Path, scheme='http'):
+    manifest_dict = {
         "version": "1.0.0",
         "manifest_version": 2,
         "name": "Chrome Proxy",
@@ -22,24 +21,25 @@ def create_proxy_auth_extension(proxy_host, proxy_port, proxy_username, proxy_pa
             "webRequestBlocking"
         ],
         "background": {
-                "scripts": ["background.js"]
+            "scripts": ["background.js"]
         },
-        "minimum_chrome_version":"22.0.0"
+        "minimum_chrome_version": "22.0.0"
     }
-    """
+
+    manifest_json = json.dumps(manifest_dict, indent=4)
 
     background_js = f"""
     var config = {{
-            mode: "fixed_servers",
-            rules: {{
+        mode: "fixed_servers",
+        rules: {{
             singleProxy: {{
                 scheme: "{scheme}",
                 host: "{proxy_host}",
-                port: parseInt({proxy_port})
+                port: parseInt("{proxy_port}")
             }},
-            bypassList: ["localhost"],
-            }},
-        }};
+            bypassList: ["localhost"]
+        }},
+    }};
 
     chrome.proxy.settings.set({{value: config, scope: "regular"}}, function() {{}});
 
@@ -53,12 +53,21 @@ def create_proxy_auth_extension(proxy_host, proxy_port, proxy_username, proxy_pa
     }}
 
     chrome.webRequest.onAuthRequired.addListener(
-                callbackFn,
-                {{urls: ["<all_urls>"]}},
-                ["blocking"]
+        callbackFn,
+        {{urls: ["<all_urls>"]}},
+        ["blocking"]
     );
     """
 
-    with zipfile.ZipFile(pluginfile_path, "w") as zp:
-        zp.writestr("manifest.json", manifest_json)
-        zp.writestr("background.js", background_js)
+    with zipfile.ZipFile(pluginfile_path, 'w') as zp:
+        zp.writestr('manifest.json', manifest_json)
+        zp.writestr('background.js', background_js)
+
+    # Проверка, что файл действительно записан
+    time.sleep(0.1)
+    if not pluginfile_path.exists() or pluginfile_path.stat().st_size < 100:
+        raise RuntimeError(f"Плагин не создан или пустой: {pluginfile_path}")
+
+    logger.debug(f"Создан плагин: {pluginfile_path} ({pluginfile_path.stat().st_size} байт)")
+
+    return pluginfile_path
