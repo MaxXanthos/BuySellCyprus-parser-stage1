@@ -1,6 +1,5 @@
 import json
 import os
-import logging
 
 class ProgressManager:
     """
@@ -22,9 +21,9 @@ class ProgressManager:
                     pages = data.get("processed_pages", [])
                     self.processed_pages = set(pages)
                     self.listings = data.get("listings", [])
-                    logging.info(f"Загружено {len(self.processed_pages)} обработанных страниц и {len(self.listings)} объявлений")
+                    print(f"Загружено {len(self.processed_pages)} обработанных страниц и {len(self.listings)} объявлений")
             except Exception as e:
-                logging.error(f"Ошибка загрузки прогресса: {e}")
+                print(f"Ошибка загрузки прогресса: {e}")
                 self.processed_pages = set()
                 self.listings = []
         else:
@@ -39,9 +38,9 @@ class ProgressManager:
             }
             with open(self.PROGRESS_FILE, "w", encoding="utf-8") as f:
                 json.dump(data, f, ensure_ascii=False, indent=2)
-            logging.debug("Прогресс успешно сохранён.")
+            print("Прогресс успешно сохранён.")
         except Exception as e:
-            logging.error(f"Ошибка сохранения прогресса: {e}")
+            print(f"Ошибка сохранения прогресса: {e}")
 
     def mark_page_processed(self, page_num) -> None:
         self.processed_pages.add(page_num)

@@ -2,9 +2,7 @@ import json
 import zipfile
 import time
 from pathlib import Path
-import logging
 
-logger = logging.getLogger(__name__)
 
 def create_proxy_auth_extension(proxy_host, proxy_port, proxy_username, proxy_password, pluginfile_path: Path, scheme='http'):
     manifest_dict = {
@@ -68,6 +66,6 @@ def create_proxy_auth_extension(proxy_host, proxy_port, proxy_username, proxy_pa
     if not pluginfile_path.exists() or pluginfile_path.stat().st_size < 100:
         raise RuntimeError(f"Плагин не создан или пустой: {pluginfile_path}")
 
-    logger.debug(f"Создан плагин: {pluginfile_path} ({pluginfile_path.stat().st_size} байт)")
+    print(f"Создан плагин: {pluginfile_path} ({pluginfile_path.stat().st_size} байт)")
 
     return pluginfile_path
