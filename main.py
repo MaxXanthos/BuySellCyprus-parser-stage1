@@ -17,7 +17,7 @@ from sqlalchemy.orm import declarative_base, sessionmaker
 from core.driver_manager import get_driver_with_proxy
 from core.progress_manager import ProgressManager
 
-from config import MAX_PAGES, THREADS, DATABASE_URL, PROXY_FILE, FAILED_ROWS_FILE, WEBDRIVER_PATH, PROGRESS_FILE
+from config import MAX_PAGES, THREADS, DATABASE_URL, PROXY_FILE, FAILED_ROWS_FILE, WEBDRIVER_PATH, PROGRESS_FILE, MAX_RETRIES
 
 BASE_URLS = [
     "https://www.buysellcyprus.com/properties-for-sale/type-apartment/page-{}",
@@ -103,7 +103,7 @@ def process_page(url: str, proxy_data: dict, page_num: int):
 
 def process_page_threaded(page_num: int, proxy: dict, base_url: str, progress: ProgressManager):
     url = base_url.format(page_num)
-    retry_count = 3
+    retry_count = MAX_RETRIES
 
     for attempt in range(1, retry_count + 1):
         try:
