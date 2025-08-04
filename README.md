@@ -43,7 +43,7 @@ Collects IDs and links to ads (houses and apartments) and stories them in Postgr
      playwright install
      ```
 5. **Configure the project**
-   - Edit the `config.ini`file and set your database and parsing parameters.
+   - Edit the `config.py`file and set your database and parsing parameters.
 6. **Run the parser**
     ```bash
     python main.py
@@ -58,10 +58,9 @@ Collects IDs and links to ads (houses and apartments) and stories them in Postgr
     - __init__.py
     - driver_manager.py
     - progress_manager.py
-    - logger.py
   - data/ — Data files
     - many_proxy.json
-    - progress.json
+    - progress_file.json
     - failed_rows.csv
   - extensions/
     - __init__.py
@@ -72,11 +71,10 @@ Collects IDs and links to ads (houses and apartments) and stories them in Postgr
     - proxy_writer.py
   - main.py
   - README.md
-  - config.ini
-  - settings.py
+  - config.py
   - requirements.txt
 
 ---
 
 ## Feedback
-If you find a bug or want to suggest an improvement, open [issue](https://github.com/MaxXanthos/BuySellCyprus-parser/issues).
+If you find a bug or want to suggest an improvement, open [issue](https://github.com/MaxXanthos/BuySellCyprus-parser1/issues).
