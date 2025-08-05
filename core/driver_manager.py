@@ -12,9 +12,12 @@ from extensions.proxy_extension import create_proxy_auth_extension
 import os
 from uuid import uuid4
 
-CHROMEDRIVER_PATH = ChromeDriverManager().install()
+from some_utils import get_chromedriver
+
+CHROMEDRIVER_PATH = get_chromedriver()
 
 def get_driver_with_proxy(proxy_data: dict, webdriver_path: str) -> tuple[webdriver.Chrome, Path]:
+
     """
     Создает драйвер с расширением авторизации прокси и включенной защитой от обнаружения.
 
@@ -41,7 +44,7 @@ def get_driver_with_proxy(proxy_data: dict, webdriver_path: str) -> tuple[webdri
     chrome_options.add_extension(str(plugin_path))
 
     driver = webdriver.Chrome(
-        service=Service(webdriver_path),  # ← используем переданный путь
+        service=Service(CHROMEDRIVER_PATH),
         options=chrome_options
     )
 

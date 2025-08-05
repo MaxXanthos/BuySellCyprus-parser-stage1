@@ -7,6 +7,7 @@ from urllib.parse import urlparse
 from typing import List, Dict
 
 from proxy_manager.many_proxy import fetch_all_webshare_proxies
+from config import WEBSHAREIO_PROXY_API_KEY
 
 config = configparser.ConfigParser()
 current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -14,7 +15,7 @@ config_path = os.path.join(current_dir, '..', 'config.ini')
 config_path = os.path.normpath(config_path)
 config.read(config_path)
 
-WEBSHAREIO_PROXY_API_KEY = config['general']['WEBSHAREIO_PROXY_API_KEY']
+WEBSHAREIO_PROXY_API_KEY = WEBSHAREIO_PROXY_API_KEY
 
 def parse_proxy(proxy_str: str) -> Dict[str, str]:
     """

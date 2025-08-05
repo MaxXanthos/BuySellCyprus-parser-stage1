@@ -7,12 +7,16 @@ Collects IDs and links to ads (houses and apartments) and stories them in Postgr
 
 ## Features
 
-- Parses full property listing details from [BuySellCyprus](https://www.buysellcyprus.com)
+- Extracts:
+  - Link
+  - Price
+  - URL
 - Proxy rotation support [Webshare](https://www.webshare.io/)
 - Saves results to a PostgreSQL database
 - Resistance to failures and timeouts
 - Bypass Cloudflare and other bot protections (via selenium-stealth and proxy)
 - Automatic configuration and management of WebDriver
+- Records pages that failed parsing into `failed_pages.txt` to allow manual checking and avoid interrupting the crawl
 
 ---
 
@@ -59,6 +63,7 @@ Collects IDs and links to ads (houses and apartments) and stories them in Postgr
     - driver_manager.py
     - progress_manager.py
   - data/ — Data files
+    - failed_pages.txt
     - many_proxy.json
     - progress_file.json
     - failed_rows.csv
@@ -73,6 +78,7 @@ Collects IDs and links to ads (houses and apartments) and stories them in Postgr
   - README.md
   - config.py
   - requirements.txt
+  - some_utils
 
 ---
 

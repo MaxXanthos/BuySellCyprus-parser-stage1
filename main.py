@@ -2,22 +2,24 @@ import json
 import random
 import time
 import threading
-from typing import List, Tuple # Needed for python < 3.9
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime, timezone
+
+# для цены
+from decimal import Decimal, InvalidOperation
 
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as ec
 from selenium.common.exceptions import TimeoutException, NoSuchElementException
 
-from sqlalchemy import create_engine, Column, Text, DateTime
+from sqlalchemy import create_engine, Column, Text, Numeric, DateTime
 from sqlalchemy.orm import declarative_base, sessionmaker
 
 from core.driver_manager import get_driver_with_proxy
 from core.progress_manager import ProgressManager
 
-from config import MAX_PAGES, THREADS, DATABASE_URL, PROXY_FILE, FAILED_ROWS_FILE, WEBDRIVER_PATH, PROGRESS_FILE, MAX_RETRIES
+from config import MAX_PAGES, THREADS, DATABASE_URL, PROXY_FILE, FAILED_ROWS_FILE, WEBDRIVER_PATH, PROGRESS_FILE, MAX_RETRIES, FAILED_PAGES_FILE
 
 BASE_URLS = [
     "https://www.buysellcyprus.com/properties-for-sale/type-apartment/page-{}",
@@ -36,6 +38,7 @@ class BuySellCyprus1(Base):
     __tablename__ = "buysellcyprus1"
     id = Column(Text, primary_key=True)
     link = Column(Text, nullable=True)
+    price = Column(Numeric(15, 2), nullable=True)
     date_and_time = Column(DateTime, default=datetime.now(timezone.utc))
 
 # ───────────────────────────────
@@ -77,7 +80,23 @@ def process_page(url: str, proxy_data: dict, page_num: int):
                         listing_id = text.split("ID:")[-1].replace(")", "").strip()
                         break
 
-                results_on_page.append((listing_id, final_link))
+                # парсим цену
+                price = None
+                try:
+                    price_el = item.find_element(By.CSS_SELECTOR, ".bs-listing-info-price-base")
+                    price_text = price_el.text.strip()
+                    price_clean = (
+                        price_text
+                        .replace("€", "")
+                        .replace(",", "")
+                        .replace("\xa0", "")  # неразрывный пробел
+                        .strip()
+                    )
+                    price = Decimal(price_clean)
+                except (NoSuchElementException, InvalidOperation):
+                    price = None
+
+                results_on_page.append((listing_id, final_link, price))
             except Exception as e:
                 print(f"Ошибка в элементе: {e}")
 
@@ -101,45 +120,59 @@ def process_page(url: str, proxy_data: dict, page_num: int):
     return next_page_url, results_on_page
 
 
-def process_page_threaded(page_num: int, proxy: dict, base_url: str, progress: ProgressManager):
+def process_page_threaded(page_num: int, proxy: dict, base_url: str, page_type: str, progress: ProgressManager):
     url = base_url.format(page_num)
     retry_count = MAX_RETRIES
+
+    if progress.is_page_processed(page_type, page_num):
+        print(f"Пропускаем уже обработанную страницу {page_num} ({page_type})")
+        return None, []
 
     for attempt in range(1, retry_count + 1):
         try:
             next_url, results = process_page(url, proxy, page_num)
             progress.add_listings(results)
-            progress.mark_page_processed(page_num)
+
+            progress.mark_page_processed(page_type, page_num)
+
             return next_url, results
         except Exception as e:
             print(f"Ошибка на странице {page_num}, попытка {attempt}: {e}")
             time.sleep(2)
 
     print(f"Страница {page_num} не обработана после {retry_count} попыток.")
+
+    with open(FAILED_PAGES_FILE, "a", encoding="utf-8") as f:
+        f.write(f"{url}\n")
+
+    progress.mark_page_processed(page_type, page_num)
+
     return None, []
 
 
 # ───────────────────────────────
 # DATABASE INSERTION
 # ───────────────────────────────
-def save_to_database(listings: list[tuple[str, str]]):
+def save_to_database(listings: list[tuple[str, str, Decimal | None]]):
     session = Session()
     success, failed = 0, 0
 
-    for listing_id, link in listings:
+    for listing_id, link, price in listings:
         if listing_id == "N/A" or link == "N/A":
             continue
         try:
             row = BuySellCyprus1(
                 id=str(listing_id),
                 link=link,
+                price=price,
                 date_and_time=datetime.now(timezone.utc)
             )
             session.merge(row)
             success += 1
         except Exception as e:
             print(f"[ERROR] {listing_id}: {e}")
-            FAILED_ROWS_FILE.write_text(f"{listing_id}, {link}\n")
+            with open(FAILED_ROWS_FILE, "a", encoding="utf-8") as f:
+                f.write(f"{listing_id}, {link}\n")
             failed += 1
 
     listing_id = "N/A"
@@ -149,7 +182,7 @@ def save_to_database(listings: list[tuple[str, str]]):
         session.commit()
         print(f"\nУспешно в базе: {success} записей")
         if failed:
-            with FAILED_ROWS_FILE.open("a", encoding="utf-8") as f:
+            with open(FAILED_ROWS_FILE, "a", encoding="utf-8") as f:
                 f.write(f"{listing_id}, {link}\n")
     except Exception as e:
         session.rollback()
@@ -173,11 +206,27 @@ def main():
     listings = []
 
     with ThreadPoolExecutor(max_workers=THREADS) as executor:
-        futures = [
-            executor.submit(process_page_threaded, page_num, random.choice(proxies), base_url, progress)
-            for base_url in BASE_URLS
-            for page_num in range(1, MAX_PAGES + 1)
-        ]
+        futures = []
+        for base_url in BASE_URLS:
+            if "type-apartment" in base_url:
+                page_type = "apartment"
+            elif "type-house" in base_url:
+                page_type = "house"
+            else:
+                page_type = "unknown"
+
+            for page_num in range(1, MAX_PAGES + 1):
+
+                futures.append(
+                    executor.submit(
+                        process_page_threaded,
+                        page_num,
+                        random.choice(proxies),
+                        base_url,
+                        page_type,
+                        progress
+                    )
+                )
 
         for future in as_completed(futures):
             try:
@@ -187,8 +236,8 @@ def main():
             except Exception as e:
                 print(f"Ошибка в потоке: {e}")
 
-    for listing_id, link in listings:
-        print(f"ID: {listing_id} | URL: {link}")
+    for listing_id, link, price in listings:
+        print(f"ID: {listing_id} | Price: {price} | URL: {link}")
 
     save_to_database(listings)
     print(f"\nЗавершено за {time.time() - start:.2f} секунд")
