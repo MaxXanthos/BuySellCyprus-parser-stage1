@@ -48,6 +48,8 @@ Collects IDs and links to ads (houses and apartments) and stories them in Postgr
      ```
 5. **Configure the project**
    - Edit the `config.py`file and set your database and parsing parameters.
+   - Run the `proxy_writer.py` file to write your proxy
+
 6. **Run the parser**
     ```bash
     python main.py
