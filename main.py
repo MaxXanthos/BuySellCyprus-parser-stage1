@@ -17,9 +17,8 @@ from sqlalchemy import create_engine, Column, Text, Numeric, DateTime
 from sqlalchemy.orm import declarative_base, sessionmaker
 
 from core.driver_manager import get_driver_with_proxy
-from core.progress_manager import ProgressManager
 
-from config import MAX_PAGES, THREADS, DATABASE_URL, PROXY_FILE, FAILED_ROWS_FILE, WEBDRIVER_PATH, PROGRESS_FILE, MAX_RETRIES, FAILED_PAGES_FILE
+from config import MAX_PAGES, THREADS, DATABASE_URL, PROXY_FILE, FAILED_ROWS_FILE, WEBDRIVER_PATH, MAX_RETRIES, FAILED_PAGES_FILE
 
 BASE_URLS = [
     "https://www.buysellcyprus.com/properties-for-sale/type-apartment/page-{}",
@@ -120,32 +119,21 @@ def process_page(url: str, proxy_data: dict, page_num: int):
     return next_page_url, results_on_page
 
 
-def process_page_threaded(page_num: int, proxy: dict, base_url: str, page_type: str, progress: ProgressManager):
+def process_page_threaded(page_num: int, proxy: dict, base_url: str, page_type: str, progress):
     url = base_url.format(page_num)
     retry_count = MAX_RETRIES
-
-    if progress.is_page_processed(page_type, page_num):
-        print(f"Пропускаем уже обработанную страницу {page_num} ({page_type})")
-        return None, []
 
     for attempt in range(1, retry_count + 1):
         try:
             next_url, results = process_page(url, proxy, page_num)
-            progress.add_listings(results)
-
-            progress.mark_page_processed(page_type, page_num)
-
             return next_url, results
         except Exception as e:
             print(f"Ошибка на странице {page_num}, попытка {attempt}: {e}")
             time.sleep(2)
 
     print(f"Страница {page_num} не обработана после {retry_count} попыток.")
-
     with open(FAILED_PAGES_FILE, "a", encoding="utf-8") as f:
         f.write(f"{url}\n")
-
-    progress.mark_page_processed(page_type, page_num)
 
     return None, []
 
@@ -202,7 +190,7 @@ def main():
     if not proxies:
         raise RuntimeError("Файл с прокси пуст или не существует")
 
-    progress = ProgressManager(progress_file=str(PROGRESS_FILE))
+    progress = None
     listings = []
 
     with ThreadPoolExecutor(max_workers=THREADS) as executor:

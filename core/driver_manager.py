@@ -6,7 +6,6 @@ from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
 from selenium_stealth import stealth
-from webdriver_manager.chrome import ChromeDriverManager
 from pathlib import Path
 from extensions.proxy_extension import create_proxy_auth_extension
 import os
