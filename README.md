@@ -24,8 +24,8 @@ Collects IDs and links to ads (houses and apartments) and stories them in Postgr
 
 1. **Clone the repository**
     ```bash
-    git clone https://github.com/MaxXanthos/BuySellCyprus-parser.git
-    cd BuySell_Project
+    git clone https://github.com/yourusername/BuySellCyprus-parser1.git
+    cd BuySellCyprus-parser1
     ```
 2. **Create and activate a virtual environment**
    - On Windows:
@@ -59,7 +59,7 @@ Collects IDs and links to ads (houses and apartments) and stories them in Postgr
 
 ## Project structure
 
-- BuySell_Project/
+- BuySellCyprus-parser-stage1/
   - core/ — Driver logic and progress management
     - __init__.py
     - driver_manager.py
@@ -77,12 +77,13 @@ Collects IDs and links to ads (houses and apartments) and stories them in Postgr
     - many_proxy.py
     - proxy_writer.py
   - main.py
-  - README.md
+  - some_utils.py
   - config.py
+  - README.md
   - requirements.txt
-  - some_utils
+  - .gitignore
 
 ---
 
 ## Feedback
-If you find a bug or want to suggest an improvement, open [issue](https://github.com/MaxXanthos/BuySellCyprus-parser1/issues).
+If you find a bug or want to suggest an improvement, open [issue](https://github.com/MaxXanthos/BuySellCyprus-parser-stage1/issues).
